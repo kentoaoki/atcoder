@@ -1,37 +1,63 @@
-def dijkstra(G,s):
-    """ヒープ使用のダイクストラ法により,辺の重みが非負グラフの最短経路を求める O(|E|log|V|)
-    
-    Args:
-        G: 重み付きグラフ((頂点,重み)の隣接リスト形式)
-        s: 探索開始頂点
-    
-    Returns:
-        dist: s(探索開始頂点)からの最短距離.INFの場合は到達しない
+import math
+from math import gcd,pi,sqrt
+INF = float("inf")
+MOD = 10**9 + 7
+import sys
+input = sys.stdin.readline
+sys.setrecursionlimit(10**6)
+import itertools
+import bisect
+import re
+from collections import Counter,deque,defaultdict
+def iinput(): return int(input())
+def imap(): return map(int, input().split())
+def ilist(): return list(imap())
+def irow(N): return [iinput() for i in range(N)]
+def sinput(): return input().rstrip()
+def smap(): return sinput().split()
+def slist(): return list(smap())
+def srow(N): return [sinput() for i in range(N)]
+
+def main():
+    def fact_prepare(n, MOD):
+        """階乗,逆元を何度も使用する時用の前処理
+
+        Args:
+            n: 階乗を求める上限
+            MOD: 方とする値
+
+        Returns:
+            factorials: 階乗の配列
+            invs: 逆元の配列
         
-    """
-    INF = float('inf')
-    dist = [INF]*N
-    dist[s] = 0
+        Examples:
+            nCr = factorials[n] * invs[n-r] * invs[r]
+        """
+        f = 1
+        factorials = [1]
+        for m in range(1, n + 1):
+            f *= m
+            f %= MOD
+            factorials.append(f)
+        inv = pow(f, MOD - 2, MOD)
+        invs = [1] * (n + 1)
+        invs[n] = inv
+        for m in range(n, 1, -1):
+            inv *= m
+            inv %= MOD
+            invs[m - 1] = inv
+        return factorials, invs
 
-    # ヒープの初期化
-    import heapq
-    que = [[dist[s], s]]
-    heapq.heapify(que)
+    n, m, k = map(int, input().split())
+    MOD = 998244353
+    facts, invs = prepare(n, MOD)
+    
+    ans = 0
+    for s in range(k + 1):
+        p = n - s
+        ans = (ans + m * pow(m - 1, p - 1, MOD) * facts[n - 1] * invs[s] * invs[n - s - 1]) % MOD
+    print(ans)
 
-    while que:
-        d, v = heapq.heappop(que) # d最小値ペアの取り出し
-        if d > dist[v]: # ゴミ処理
-            continue
-        for e in G[v]:
-            if dist[e[0]] > dist[v] + e[1]:
-                dist[e[0]] = dist[v] + e[1]
-                heapq.heappush(que, [dist[e[0]], e[0]])
-    return dist
 
-N,M,s = map(int, input().split())
-G = [[] for i in range(N)]
-for i in range(M):
-    a,b,w = map(int, input().split())
-    G[a].append([b,w])
-ans = dijkstra(G,s)
-print(*map(lambda x: x if x != float('inf') else 'INF', ans), sep='\n')
+if __name__=="__main__":
+    main()

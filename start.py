@@ -35,6 +35,37 @@ if __name__=="__main__":
 組み合わせ
 """
 
+## 二項係数の前処理(nCr)
+
+def fact_prepare(n, MOD):
+        """階乗,逆元を何度も使用する時用の前処理
+
+        Args:
+            n: 階乗を求める上限
+            MOD: 方とする値
+
+        Returns:
+            factorials: 階乗の配列
+            invs: 逆元の配列
+        
+        Examples:
+            nCr = factorials[n] * invs[n-r] * invs[r]
+        """
+        f = 1
+        factorials = [1]
+        for m in range(1, n + 1):
+            f *= m
+            f %= MOD
+            factorials.append(f)
+        inv = pow(f, MOD - 2, MOD)
+        invs = [1] * (n + 1)
+        invs[n] = inv
+        for m in range(n, 1, -1):
+            inv *= m
+            inv %= MOD
+            invs[m - 1] = inv
+        return factorials, invs
+
 ## nCrのmod計算
 
 def fur(n,r):
