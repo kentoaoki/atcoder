@@ -1,63 +1,55 @@
-import math
-from math import gcd,pi,sqrt
-INF = float("inf")
-MOD = 10**9 + 7
-import sys
-input = sys.stdin.readline
-sys.setrecursionlimit(10**6)
-import itertools
-import bisect
-import re
-from collections import Counter,deque,defaultdict
-def iinput(): return int(input())
-def imap(): return map(int, input().split())
-def ilist(): return list(imap())
-def irow(N): return [iinput() for i in range(N)]
-def sinput(): return input().rstrip()
-def smap(): return sinput().split()
-def slist(): return list(smap())
-def srow(N): return [sinput() for i in range(N)]
+class SegTree:
+    """セグメントツリーを構築する
+    """
+    X_unit = 1 << 35
+    X_f = min
 
-def main():
-    def fact_prepare(n, MOD):
-        """階乗,逆元を何度も使用する時用の前処理
+    def __init__(self, N):
+        self.N = N
+        self.X = [self.X_unit] * (N + N)
 
-        Args:
-            n: 階乗を求める上限
-            MOD: 方とする値
-
-        Returns:
-            factorials: 階乗の配列
-            invs: 逆元の配列
-        
-        Examples:
-            nCr = factorials[n] * invs[n-r] * invs[r]
+    def build(self, seq):
+        """値の初期化
         """
-        f = 1
-        factorials = [1]
-        for m in range(1, n + 1):
-            f *= m
-            f %= MOD
-            factorials.append(f)
-        inv = pow(f, MOD - 2, MOD)
-        invs = [1] * (n + 1)
-        invs[n] = inv
-        for m in range(n, 1, -1):
-            inv *= m
-            inv %= MOD
-            invs[m - 1] = inv
-        return factorials, invs
+        for i, x in enumerate(seq, self.N):
+            self.X[i] = x
+        for i in range(self.N - 1, 0, -1):
+            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
 
-    n, m, k = map(int, input().split())
-    MOD = 998244353
-    facts, invs = prepare(n, MOD)
-    
-    ans = 0
-    for s in range(k + 1):
-        p = n - s
-        ans = (ans + m * pow(m - 1, p - 1, MOD) * facts[n - 1] * invs[s] * invs[n - s - 1]) % MOD
-    print(ans)
+    def set_val(self, i, x):
+        """1点更新
+        """
+        i += self.N
+        self.X[i] = x
+        while i > 1:
+            i >>= 1
+            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
 
+    def fold(self, L, R):
+        """区間取得
+        """
+        L += self.N
+        R += self.N
+        vL = self.X_unit
+        vR = self.X_unit
+        while L < R:
+            if L & 1:
+                vL = self.X_f(vL, self.X[L])
+                L += 1
+            if R & 1:
+                R -= 1
+                vR = self.X_f(self.X[R], vR)
+            L >>= 1
+            R >>= 1
+        return self.X_f(vL, vR)
 
-if __name__=="__main__":
-    main()
+N,Q = map(int, input().split())
+seg = SegTree(N)
+seg.build([2**31 - 1]*N)
+
+for i in range(Q):
+    com,x,y = map(int, input().split())
+    if com:
+        print(seg.fold(x,y+1))
+    else:
+        seg.set_val(x,y)
