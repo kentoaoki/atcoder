@@ -1,55 +1,25 @@
-class SegTree:
-    """セグメントツリーを構築する
-    """
-    X_unit = 1 << 35
-    X_f = min
+def main():
+    def Base_10_to_n(X, n):
+        if (int((X-1)/n)):
+            return Base_10_to_n(int(X/n), n)+" "+str(X%n)
+        return str((X-1)%n)
 
-    def __init__(self, N):
-        self.N = N
-        self.X = [self.X_unit] * (N + N)
+    import string
+    n = int(input())
+    a = Base_10_to_n(n,26)
+    a = list(a.split())
+    a = [int(i) for i in a][::-1]
+    # print(a)
+    ans = ""
+    st = string.ascii_lowercase
+    for i in range(len(a)):
+        if a[i] != 0:
+            ans += st[a[i]-1]
+        else:
+            ans += "z"
 
-    def build(self, seq):
-        """値の初期化
-        """
-        for i, x in enumerate(seq, self.N):
-            self.X[i] = x
-        for i in range(self.N - 1, 0, -1):
-            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
+    print(ans[::-1])
 
-    def set_val(self, i, x):
-        """1点更新
-        """
-        i += self.N
-        self.X[i] = x
-        while i > 1:
-            i >>= 1
-            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
 
-    def fold(self, L, R):
-        """区間取得
-        """
-        L += self.N
-        R += self.N
-        vL = self.X_unit
-        vR = self.X_unit
-        while L < R:
-            if L & 1:
-                vL = self.X_f(vL, self.X[L])
-                L += 1
-            if R & 1:
-                R -= 1
-                vR = self.X_f(self.X[R], vR)
-            L >>= 1
-            R >>= 1
-        return self.X_f(vL, vR)
-
-N,Q = map(int, input().split())
-seg = SegTree(N)
-seg.build([2**31 - 1]*N)
-
-for i in range(Q):
-    com,x,y = map(int, input().split())
-    if com:
-        print(seg.fold(x,y+1))
-    else:
-        seg.set_val(x,y)
+if __name__=="__main__":
+    main()

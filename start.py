@@ -180,6 +180,14 @@ def Base_10_to_n(X, n):
         return Base_10_to_n(int(X/n), n)+str(X%n)
     return str(X%n)
 
+## n進数から10進数への変換
+def Base_n_to_10(X,n):
+    X = str(X)
+    out = 0
+    for i in range(1,len(str(X))+1):
+        out += int(X[-i])*(n**(i-1))
+    return out#int out
+
 """
 2次元配列操作
 """
@@ -526,50 +534,52 @@ class UnionFind:
 
 ### セグメントツリー
 
-class SegTree:
-    """セグメントツリーを構築する
-    """
-    X_unit = 1 << 35
-    X_f = min
+class SegmentTree:
+    def __init__(self, size, op, e):
+        """初期化
 
-    def __init__(self, N):
-        self.N = N
-        self.X = [self.X_unit] * (N + N)
-
-    def build(self, seq):
-        """値の初期化
+        Args:
+            size: 配列サイズ(2の累乗でなくても良い)
+            op: 集計したい処理
+            e: 要素の初期値(単位元)
+        
+        Note:
+            0-indexで生成
         """
-        for i, x in enumerate(seq, self.N):
-            self.X[i] = x
-        for i in range(self.N - 1, 0, -1):
-            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
+        self._op = op
+        self._e = e
+        self._size = size
+        t = 1
+        while t < size:
+            t *= 2
+        self._offset = t - 1
+        self._data = [e] * (t * 2 - 1)
 
-    def set_val(self, i, x):
-        """1点更新
-        """
-        i += self.N
-        self.X[i] = x
-        while i > 1:
-            i >>= 1
-            self.X[i] = self.X_f(self.X[i << 1], self.X[i << 1 | 1])
+    def update(self, index, value):
+        op = self._op
+        data = self._data
+        i = self._offset + index
+        data[i] = value
+        while i >= 1:
+            i = (i - 1) // 2
+            data[i] = op(data[i * 2 + 1], data[i * 2 + 2])
 
-    def fold(self, L, R):
-        """区間取得
-        """
-        L += self.N
-        R += self.N
-        vL = self.X_unit
-        vR = self.X_unit
-        while L < R:
-            if L & 1:
-                vL = self.X_f(vL, self.X[L])
-                L += 1
-            if R & 1:
-                R -= 1
-                vR = self.X_f(self.X[R], vR)
-            L >>= 1
-            R >>= 1
-        return self.X_f(vL, vR)
+    def query(self, start, stop):
+        def iter_segments(data, l, r):
+            while l < r:
+                if l & 1 == 0:
+                    yield data[l]
+                if r & 1 == 0:
+                    yield data[r - 1]
+                l = l // 2
+                r = (r - 1) // 2
+        op = self._op
+        it = iter_segments(self._data, start + self._offset,
+                        stop + self._offset)
+        result = self._e
+        for v in it:
+            result = op(result, v)
+        return result
 
 """
 デバッグ用テストケース生成
